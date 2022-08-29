@@ -11,4 +11,7 @@ Thumbs.db
 # MATLAB Save data #
 ###################
 *.m~
+*.m~*
+*.m%
+*.m%*
 *.m.bkup
