@@ -1,6 +1,6 @@
 
 cd ~
-matpath=[pwd,'/matlab/'];
+matpath=[pwd,'/matlab/NIL-Functions'];
 %matpath=[pwd,'/Documents/MATLAB/'];
 
 addpath([matpath,'mfiles/']);
@@ -26,6 +26,11 @@ addpath(genpath([matpath,'chronux_2_12']))
 %set(0,'defaultLineLineWidth',1.5)
 %set(0,'defaultAxesFontSize',12)
 %set(0,'defaultFigureColormap',gray(64));
+
+% Add Windows functions to top of search path if on windows operating system
+if ispc
+    addpath([matpath, 'windows/']);
+end
 
 clear matpath
 
