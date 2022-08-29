@@ -1,35 +1,37 @@
+if isunix
+    matpath = [pwd, '/'];
 
-cd ~
-matpath=[pwd,'/matlab/NIL-Functions'];
-%matpath=[pwd,'/Documents/MATLAB/'];
+    addpath(matpath);
+    addpath([matpath, 'mfiles/']);
+    addpath([matpath, 'mrfunc/']);
+    addpath([matpath, 'models/']);
+    addpath([matpath, 'lsm/']);
+    addpath([matpath, 'vnmr/']);
+    addpath([matpath, 'plexon/']);
+    addpath([matpath, 'biopac/']);
+    addpath([matpath, 'xml_io_tools/']);
+    addpath([matpath, 'fastICA_25/']);
+    
+    addpath(genpath([matpath,'chronux_2_12']))
+elseif ispc
+    matpath = [pwd, '\'];
+    
+    addpath(matpath);
+    addpath([matpath, 'mfiles\']);
+    addpath([matpath, 'mrfunc\']);
+    addpath([matpath, 'models\']);
+    addpath([matpath, 'lsm\']);
+    addpath([matpath, 'vnmr\']);
+    addpath([matpath, 'plexon\']);
+    addpath([matpath, 'biopac\']);
+    addpath([matpath, 'xml_io_tools\']);
+    addpath([matpath, 'fastICA_25\']);
+    
+    addpath(genpath([matpath,'chronux_2_12']))
 
-addpath([matpath,'mfiles/']);
-%addpath([matpath,'control/']);
-addpath([matpath,'mrfunc/']);
-addpath([matpath,'models/']);
-addpath([matpath,'lsm/']);
-addpath([matpath,'vnmr/']);
-addpath([matpath,'plexon/']);
-addpath([matpath,'biopac/']);
-addpath([matpath,'xml_io_tools/']);
-addpath([matpath,'fastICA_25/']);
-%addpath([matpath,'tmp/']);
-
-addpath(genpath([matpath,'chronux_2_12']))
-
-%setenv( 'FSLDIR', '/usr/local/fsl' );
-%fsldir = getenv('FSLDIR');
-%fsldirmpath = sprintf('%s/etc/matlab',fsldir);
-%path(path, fsldirmpath);
-%clear fsldir fsldirmpath;
-
-%set(0,'defaultLineLineWidth',1.5)
-%set(0,'defaultAxesFontSize',12)
-%set(0,'defaultFigureColormap',gray(64));
-
-% Add Windows functions to top of search path if on windows operating system
-if ispc
-    addpath([matpath, 'windows/']);
+    addpath([matpath, 'windows\']);
+else
+    warning('No functions loaded ... unknown system');
 end
 
 clear matpath
