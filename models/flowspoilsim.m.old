@@ -1,0 +1,80 @@
+
+clear all
+
+nspins=1e3;
+
+TR=35e-3;
+ts=20*4e-6;
+tt=[0:ts:TR]';
+
+% gradients
+gamma=26752/(2*pi);
+Gamp=0.01;
+Gx=zeros(size(tt));
+Gy=zeros(size(tt));
+%Gz=Gamp*rect(tt,10e0-3,10e-3)-Gamp*rect(tt,10e-3,25e-3);
+Gz=Gamp*rect(tt,10e-3,10e-3);
+
+% initial position and velocity
+theta=0; phi=pi/2;
+lamv=1e-1;
+lampdf=(1-[0:1e-3:1].*[0:1e-3:1]); lampdf=lampdf/sum(lampdf);
+lamdist=ran_dist([lampdf]',rand([nspins 1]));
+radpdf=lampdf([end:-1:1]); radpdf=radpdf/sum(radpdf);
+raddist=ran_dist([radpdf]',rand([nspins 1]));
+dz=5e-3; rad=200e-6;
+dr=rad*raddist;
+dth=2*pi*rand([nspins 1]);
+dax=dz*rand([nspins 1]);
+r0(:,1)=(dr.*cos(dth));				% need a rotation here
+r0(:,2)=(dr.*sin(dth));
+r0(:,3)=(dax);
+v(:,1)=lamv*cos(theta)*cos(phi)*lamdist;	% rotation may not be needed here
+v(:,2)=lamv*sin(theta)*cos(phi)*lamdist;
+v(:,3)=lamv*sin(phi)*lamdist;
+
+% initial signal mag/phase per spin after the RF pulse
+S=ones([nspins 1])+i*zeros([nspins 1]);
+
+disp('Simulating...');
+phs=angle(S);
+for m=1:length(tt),
+  xterm = sum(gamma*Gx(1:m)*(v(:,1)*tt(m)+r0(:,1))'*ts)';
+  yterm = sum(gamma*Gy(1:m)*(v(:,2)*tt(m)+r0(:,2))'*ts)';
+  zterm = sum(gamma*Gz(1:m)*(v(:,3)*tt(m)+r0(:,3))'*ts)';
+  phs=phs+xterm+yterm+zterm;
+  St(m)=(1/nspins)*real(sum(S.*exp(-i*phs)));
+  %fprintf('\r%d',m)
+end;
+
+clf
+figure(1)
+subplot(211)
+plot(tt,St)
+xlabel('Time')
+ylabel('Signal')
+subplot(212)
+plot(tt,Gx,tt,Gy,tt,Gz)
+xlabel('Time')
+ylabel('Gradient Amplitude')
+figure(2)
+clf
+subplot(231)
+hist(r0(:,1),floor(0.02*nspins))
+xlabel('x0')
+subplot(232)
+hist(r0(:,2),floor(0.02*nspins))
+xlabel('y0')
+subplot(233)
+hist(r0(:,3),floor(0.02*nspins))
+xlabel('z0')
+subplot(234)
+hist(v(:,1),floor(0.02*nspins))
+xlabel('Vx')
+subplot(235)
+hist(v(:,2),floor(0.02*nspins))
+xlabel('Vy')
+subplot(236)
+hist(v(:,3),floor(0.02*nspins))
+xlabel('Vz')
+

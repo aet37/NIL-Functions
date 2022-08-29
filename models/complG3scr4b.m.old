@@ -1,0 +1,122 @@
+
+
+%load /net/stanley/home/towi/matlab/workdata/cohenData
+load co2_4vals tt1 avgE1 avgC1
+load co2_4vals tt2 avgE2 avgE2b avgC2 avgC2b
+load co2_4vals tt3 avgE3 avgE3b avgC3 avgC3b
+%co2scr6,
+
+dt=1/(20*60);
+tfin1=tt1(end)/60;
+tfin2=tt2(end)/60;
+tfin3=tt3(end)/60;
+
+tt1=tt1/60;
+tt2=tt2/60;
+tt3=tt3/60;
+
+
+opt2=optimset('lsqnonlin');
+opt2.TolX=1e-8;
+opt2.TolPCG=1e-2;
+opt2.TolFun=1e-8;
+opt2.DiffMinChange=1e-10;
+
+
+% [Qa0   V0  1/kf1 1/kn  kd    ust  udur   uamp  N   klpf]
+%xg=[ 1    1    3   2.5   0     1    12   0.62  0.00  1.5/60 0.0282 1.22/60 11.5 0.68];
+%xg=[ 1    1    3   2.9   0     1    12   0.62  0.00  1.5/60 0.0257 1.35/60 11.7 0.64];
+xg=[ 1    1    3   2.4   0     1    12   0.648  0.00  1.5/60 0.0204 1.54/60 11.5 0.52];
+xl=[0.1  0.1  0.5  0.1     0    0.0  11.0  0.50   0  0.1/60 0.0184 1.39/60 9.2 0.2];
+xu=[100  100  100  100    100    5   13.5  0.75  2    5/60 0.0224  1.69/60 18.5 0.7];
+
+%parms2fit=[3 6];
+%parms2fit=[3 6 8 10];
+parms2fit=[3 6];
+%parms2fit=[3 6 7];
+
+
+xg2=xg; xl2=xl; xu2=xu;
+xg2b=xg;
+xg3=xg; xl3=xl; xu3=xu;
+xg3b=xg;
+
+xg(7)=60; xl(7)=58; xu(7)=62;
+xg2(7)=12; xg2b(7)=12; xl2(7)=11; xu2(7)=14.0;
+xg3(7)=6; xg3b(7)=6; xl3(7)=5; xu3(7)=8.0;
+
+xg2b(14)=1-(1-xg(14))^(1/1.1);
+xg2b(12)=xg(12)*(1.1^0.4)/1.1;
+xg3b(14)=1-(1-xg(14))^(1/1.1);
+xg3b(12)=xg(12)*(1.1^0.4)/1.1;
+
+
+tparms1=[dt tfin1 1];
+tparms2=[dt tfin2 1];
+tparms3=[dt tfin3 1];
+
+t1=[0:tparms1(1):tparms1(2)];
+t2=[0:tparms2(1):tparms2(2)];
+t3=[0:tparms3(1):tparms3(2)];
+
+avgC1i=interp1(tt1,avgC1,t1);
+avgE1i=interp1(tt1,avgE1,t1);
+avgC2i=interp1(tt2,avgC2,t2);
+avgC2bi=interp1(tt2,avgC2b,t2);
+avgE2i=interp1(tt2,avgE2,t2);
+avgE2bi=interp1(tt2,avgE2b,t2);
+avgC3i=interp1(tt3,avgC3,t3);
+avgC3bi=interp1(tt3,avgC3b,t3);
+avgE3i=interp1(tt3,avgE3,t3);
+avgE3bi=interp1(tt3,avgE3b,t3);
+
+
+
+xx1=lsqnonlin(@complG3f,xg(parms2fit),xl(parms2fit),xu(parms2fit),opt2,tparms1,xg,parms2fit,[avgE1],tt1);
+yy1=complG3f(xx1,tparms1,xg,parms2fit);
+ee1n=[(avgE1i-yy1)/(max(avgE1i)-1)];
+ee1n=sum(ee1n.^2)/length(t1);
+
+xx2=lsqnonlin(@complG3f,xg2(parms2fit),xl2(parms2fit),xu2(parms2fit),opt2,tparms2,xg2,parms2fit,[avgE2],tt2);
+yy2=complG3f(xx2,tparms2,xg2,parms2fit);
+ee2n=[(avgE2i-yy2)/(max(avgE2i)-1)];
+ee2n=sum(ee2n.^2)/length(t2);
+
+xx2b=lsqnonlin(@complG3f,xg2b(parms2fit),xl2(parms2fit),xu2(parms2fit),opt2,tparms2,xg2b,parms2fit,[avgE2b],tt2);
+yy2b=complG3f(xx2b,tparms2,xg2b,parms2fit);
+ee2bn=[(avgE2bi-yy2b)/(max(avgE2bi)-1)];
+ee2bn=sum(ee2bn.^2)/length(t2);
+
+xx3=lsqnonlin(@complG3f,xg3(parms2fit),xl3(parms2fit),xu3(parms2fit),opt2,tparms3,xg3,parms2fit,[avgE3],tt3);
+yy3=complG3f(xx3,tparms3,xg3,parms2fit);
+ee3n=[(avgE3i-yy3)/(max(avgE3i)-1)];
+ee3n=sum(ee3n.^2)/length(t3);
+
+xx3b=lsqnonlin(@complG3f,xg3b(parms2fit),xl3(parms2fit),xu3(parms2fit),opt2,tparms3,xg3b,parms2fit,[avgE3b],tt3);
+yy3b=complG3f(xx3b,tparms3,xg3b,parms2fit);
+ee3bn=[(avgE3bi-yy3b)/(max(avgE3bi)-1)];
+ee3bn=sum(ee3bn.^2)/length(t3);
+
+
+
+figure(1)
+subplot(311)
+plot(tt1*60,avgE1,'b--',t1*60,yy1,'b-')
+ylabel('BOLD'),
+axis('tight'), grid('on'), fatlines, dofontsize(15);
+legend('Normo Data','Normo Fit')
+
+subplot(312)
+plot(tt2*60,avgE2,'b--',tt2*60,avgE2b,'r--',t2*60,yy2,'b-',t2*60,yy2b,'r-')
+ylabel('BOLD'),
+axis('tight'), grid('on'), fatlines, dofontsize(15);
+legend('Normo Data','Hyper Data','Normo Fit','Hyper Fit')
+
+subplot(313)
+plot(tt3*60,avgE3,'b--',tt3*60,avgE3b,'r--',t3*60,yy3,'b-',t3*60,yy3b,'r-')
+ylabel('BOLD'), xlabel('Time (s)'),
+axis('tight'), grid('on'), fatlines, dofontsize(15);
+legend('Normo Data','Hyper Data','Normo Fit','Hyper Fit')
+
+
+

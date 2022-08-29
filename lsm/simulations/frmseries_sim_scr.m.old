@@ -1,0 +1,67 @@
+
+clear all
+
+vel=0.2;		% units: mm/s
+namp=0.0;
+nfr=200;
+dt=0.020;		% units: s
+dxy=[0.46 0.46]*1e-3;	% units: mm
+hct=0.33;
+
+vwid=12;		% cell width (pix)
+vtopl=12;		% vessel top (pix)
+per=[3 5];
+
+ddim=[40 64 nfr];
+Lx=ddim(2)*dxy(1);		% length of frame in mm
+dpx=vel*dt/dxy(1);		% pix per frame
+pxx=ceil(dpx*nfr+2*ddim(2));	% total pix for sim
+xx=[1:pxx]*dxy(1);		% x_scale in mm
+%npart=round(hct*(pi*vwid*vwid*dxy(2)*dxy(2)*pxx*dxy(1))/(1.333*pi*(mean(per)*mean(dxy))^3));
+npart=round(hct*pxx/vwid);
+xloc0=rand(npart,1)*pxx;
+  
+
+gmy=vtopl+vwid/2;
+gss=per*0.67;
+
+
+eii=[17 50];
+er=per;
+eang=0;
+%tmpim1p=ellipse(zeros(ddim(1:2)),eii(1),eii(2),er(1),er(2),eang,1);
+
+
+data=zeros(ddim);
+datawn=zeros(ddim);
+
+ww=2*gauss_window(ddim(1),vtopl+vwid/2,0.25*vwid,1); ww(find(ww>1))=1;
+vesim=rect2d(vwid,ddim(2),vtopl,1,ddim(1),ddim(2)).*(ww(:)*ones(1,ddim(2)));
+for mm=1:ddim(3),
+  tmpx=(xloc0-vel*dt*(mm-1))/dxy(1);	% pix displacement
+  tmpxi=find((tmpx>-1.5*dpx)&(tmpx<(ddim(2)+1.5*dpx)));
+  tmpim1=zeros(size(vesim));
+  if ~isempty(tmpxi),
+    disp(sprintf('  frm# %d/%d,  particles_in_frm= %d',mm,nfr,length(tmpxi)));
+    for nn=1:length(tmpxi),
+      tmppx=tmpx(tmpxi(nn));
+      tmppy=gmy;
+      tmpim1p=2*gauss_window(ddim(1:2),[tmppy tmppx],gss,1); 
+      tmpim1p(find(tmpim1p>1))=1;
+      tmpim1=tmpim1+tmpim1p;
+    end;  
+    tmpim1(find(tmpim1>1))=1;
+    tmpim1(find(tmpim1<1e-10))=0;
+  else,
+    disp(sprintf('  frm# %d/%d,  particles_in_frm= %d',mm,nfr,0));
+  end;
+  %show(tmpim1), pause,
+  tmpim2=namp*randn(size(vesim));
+  tmpim3=vesim-tmpim1;
+  tmpim3(find(tmpim3>1))=1;
+  tmpim3(find(tmpim3<1e-10))=0;
+  data(:,:,mm)=tmpim3;
+  datawn(:,:,mm)=tmpim3+abs(tmpim2);
+end;
+
+

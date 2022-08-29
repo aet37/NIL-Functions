@@ -1,0 +1,131 @@
+
+clear all
+
+%load /net/stanley/home/towi/matlab/workdata/cohenData
+load co2_4vals tt1 avgE1 avgC1 
+load co2_4vals tt2 avgE2 avgE2b avgC2 avgC2b
+load co2_4vals tt3 avgE3 avgE3b avgC3 avgC3b
+%co2scr6,
+
+dt=0.01;
+tfin1=tt1(end);
+
+t=[0:dt:tfin1];
+avgC1i=interp1(tt1,avgC1,t);
+avgE1i=interp1(tt1,avgE1,t);
+avgC2i=interp1(tt2,avgC2,t);
+avgC2bi=interp1(tt2,avgC2b,t);
+avgE2i=interp1(tt2,avgE2,t);
+avgE2bi=interp1(tt2,avgE2b,t);
+avgC3i=interp1(tt3,avgC3,t);
+avgC3bi=interp1(tt3,avgC3b,t);
+avgE3i=interp1(tt3,avgE3,t);
+avgE3bi=interp1(tt3,avgE3b,t);
+avgC1i(find(isnan(avgC1i)))=1;
+avgE1i(find(isnan(avgE1i)))=1;
+avgC2i(find(isnan(avgC2i)))=1;
+avgC2bi(find(isnan(avgC2bi)))=1;
+avgE2i(find(isnan(avgE2i)))=1;
+avgE2bi(find(isnan(avgE2bi)))=1;
+avgC3i(find(isnan(avgC3i)))=1;
+avgC3bi(find(isnan(avgC3bi)))=1;
+avgE3i(find(isnan(avgE3i)))=1;
+avgE3bi(find(isnan(avgE3bi)))=1;
+
+W1=ones(size(t));
+W2=ones(size(t));
+W3=ones(size(t));
+W1(find((t<tt1(1))|(t>tt1(end))))=0;
+W2(find((t<tt2(1))|(t>tt2(end))))=0;
+W3(find((t<tt3(1))|(t>tt3(end))))=0;
+
+
+
+opt2=optimset('lsqnonlin');
+
+
+%xg=[0.5   0.1   7.6   0.0660  0.206  0.217  0.00215   0.0  12.0   2*dt];
+xg=[0.5   0.1   7.4   0.1361  0.232  0.257  0.00260   0.0  12.0   2*dt];
+xl=[0.0   0.0   0.1    1e-5   1e-5   1e-5   1e-7      0.0   3.0   1*dt];
+xu=[6.0   4.0   12.0    10.0   1000   1000   10000    6.0  90.0  10*dt];
+
+
+%xtyp=xg;
+%opt2.TypicalX=xtyp(parms2fit);
+opt2.TolX=1e-8;
+opt2.TolPCG=1e-2;
+opt2.TolFun=1e-8;
+opt2.DiffMinChange=1e-10;
+
+parms2fit=[3 4 5 6 7 8];
+%parms2fit=[3 7 8];
+parms2fit2=parms2fit;
+%parms2fit2=[7 8 9];
+
+xg1=xg; xg1(9)=60.0; xl(9)=56.0; xu(9)=64.0;
+xx1=lsqnonlin(@lin42,xg1(parms2fit),xl(parms2fit),xu(parms2fit),opt2,t,xg1,parms2fit,[avgC1i],[W1]);
+
+xg2=xg; xg2(9)=12.0; xl(9)=10.0; xu(9)=16.0;
+xx2=lsqnonlin(@lin42,xg2(parms2fit),xl(parms2fit),xu(parms2fit),opt2,t,xg2,parms2fit,[avgC2i],[W2]);
+xg2(parms2fit)=xx2;
+xx2b=lsqnonlin(@lin42,xg2(parms2fit2),xl(parms2fit2),xu(parms2fit2),opt2,t,xg2,parms2fit2,[avgC2bi],[W2]);
+xg2b=xg2; xg2b(parms2fit2)=xx2b;
+
+xg3=xg; xg3(9)=6.0; xl(9)=4.0; xu(9)=10.0;
+xx3=lsqnonlin(@lin42,xg3(parms2fit),xl(parms2fit),xu(parms2fit),opt2,t,xg3,parms2fit,[avgC3i],[W3]);
+xg3(parms2fit)=xx3;
+xx3b=lsqnonlin(@lin42,xg3(parms2fit2),xl(parms2fit2),xu(parms2fit2),opt2,t,xg3,parms2fit2,[avgC3bi],[W3]);
+xg3b=xg3; xg3b(parms2fit2)=xx3b;
+
+
+[yy1,ww1,vv1]=lin42(xx1,t,xg1,parms2fit);
+[yy2,ww2,vv2]=lin42(xx2,t,xg2,parms2fit);
+[yy2b,ww2b,vv2b]=lin42(xx2b,t,xg2,parms2fit2);
+[yy3,ww3,vv3]=lin42(xx3,t,xg3,parms2fit);
+[yy3b,ww3b,vv3b]=lin42(xx3b,t,xg3,parms2fit2);
+
+err1n=sum((avgC1i'-yy1).^2)/length(tt1)/max(avgC1i-1);
+err2n=sum((avgC2i'-yy2).^2)/length(tt2)/max(avgC2i-1);
+err3n=sum((avgC3i'-yy3).^2)/length(tt3)/max(avgC3i-1);
+err2bn=sum((avgC2bi'-yy2b).^2)/length(tt2)/max(avgC2bi-1);
+err3bn=sum((avgC3bi'-yy3b).^2)/length(tt3)/max(avgC3bi-1);
+
+figure(1)
+subplot(311)
+plot(t,avgC1i,'b--',t,yy1,'b-')
+ylabel('FAIR'), legend('Normo Data','Normo Fit')
+axis('tight'), ax=axis; axis([0 tt1(end)-tt1(1) ax(3:4)]), grid('on'),
+fatlines, dofontsize(15);
+
+subplot(312)
+plot(t,avgC2i,'b--',t,yy2,'b-',t,avgC2bi,'r--',t,yy2b,'r-')
+ylabel('FAIR'), legend('Normo Data','Normo Fit','Hyper Data','Hyper Fit')
+axis('tight'), ax=axis; axis([0 tt2(end)-tt2(1) ax(3:4)]), grid('on'),
+fatlines, dofontsize(15);
+
+subplot(313)
+plot(t,avgC3i,'b--',t,yy3,'b-',t,avgC3bi,'r--',t,yy3b,'r-')
+ylabel('FAIR'), xlabel('Time (s)'), legend('Normo Data','Normo Fit','Hyper Data','Hyper Fit'),
+axis('tight'), ax=axis; axis([0 tt3(end)-tt3(1) ax(3:4)]), grid('on'),
+fatlines, dofontsize(15);
+
+
+%y1p12=avgC2i+tshift(t,avgC2i,12)+tshift(t,avgC2i,24)+tshift(t,avgC2i,36)+tshift(t,avgC2i,48)-4;
+%y1p6=avgC3i+tshift(t,avgC3i,6)+tshift(t,avgC3i,12)+tshift(t,avgC3i,18)+tshift(t,avgC3i,24);
+%y1p6=y1p6+tshift(t,avgC3i,30)+tshift(t,avgC3i,36)+tshift(t,avgC3i,42)+tshift(t,avgC3i,48)+tshift(t,avgC3i,54)-9;
+%y2p6=avgC3i+tshift(t,avgC3i,6)-1;
+%
+%figure(2)
+%subplot(211)
+%plot(t,avgC1i,'b-.',t,y1p12,'g-',t,y1p6,'c--')
+%ylabel('FAIR'), legend('60s Resp','60s Pred from 12s','60s Pred from 6s')
+%axis('tight'), grid('on'),
+%fatlines, dofontsize(15);
+%
+%subplot(212)
+%plot(t,avgC2i,'b-.',t,y2p6,'g-')
+%ylabel('FAIR'), xlabel('Time'), legend('12s Resp','12s Pred from 6s')
+%axis('tight'), ax=axis; axis([0 tt2(end)-tt2(1) ax(3:4)]), grid('on'),
+%fatlines, dofontsize(15);
+%
+

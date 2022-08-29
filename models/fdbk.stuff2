@@ -1,0 +1,25 @@
+% Tentative Linear Model
+
+% Time variables
+t=[0:.01:63];
+tt=[0:.01:31.50];
+tc=[0:63];
+u=zeros(size(tt));
+v=zeros(size(tt));
+
+% Input (single pulse unity amplitude)
+for m=20/.01:21/.01, u(m)=1; end;
+
+% Spreading function of input block (unity amplitude)
+for m=2:502, v(m)=v(m-1)+1/500; end;
+for m=503:702, v(m)=1; end;
+for m=703:1203, v(m)=v(m-1)-1/500; end;
+
+% Analysis of system
+num=0.05*[1 0.1];
+den=[7 2 .5];
+[y,x]=lsim(num,den,conv(u,v),t);
+
+% Comparison with actual response
+load /home/vazquez/studies/st070395
+plot(t,y,tc,mean(m1))

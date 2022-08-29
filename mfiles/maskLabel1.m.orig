@@ -1,0 +1,35 @@
+function [labelim,label]=maskLabel1(mask,im,prev)
+% Usage ... [labelim,label]=maskLabel1(mask,im,prev)
+
+clf,
+nroi=max(mask(:));
+labelim=zeros(size(mask));
+
+% label: neuron=1/astrocyte=2 nearvessel=1,0 
+
+mm=1;
+tmpfound=0;
+while(~tmpfound),
+  tmpgood=0;
+  for oo=1:2, for pp=1:size(im,3),
+    show(im(:,:,pp)), title(''),  drawnow, pause(0.3),
+    im_overlay4(im(:,:,1),mask==mm), xlabel(num2str(mm)), drawnow, pause(0.3),
+  end; end;
+  tmpin=input('  label (1/2=neuron/glia, 1/0=near-vessel, r=repeat, b=back, g=goto): ','s');
+  if strcmp(tmpin,'b'),
+    mm=mm-1;
+  elseif strcmp(tmpin,'r'),
+    mm=mm;
+  elseif strcmp(tmpin,'g'),
+    mm=input('  goto# : ');
+  else,
+    label(mm,:)=str2num(tmpin);
+    labelim(find(mask==mm))=label(mm,1);
+    im_overlay4(im(:,:,1),labelim), drawnow, pause(1),
+    tmpgood=1;
+  end;
+  if mm==nroi, tmpfound=1; end;
+  if tmpgood, mm=mm+1; end;
+end;
+
+

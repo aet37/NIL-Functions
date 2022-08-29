@@ -1,0 +1,19 @@
+function y=writeim(a,b,type,arch)
+% usage .. writeim(a,b,type,arch)
+% writes array b into file "a" 
+% output is number of bytes written
+
+if nargin<3, type='short'; end;
+if nargin<4,
+  fid = fopen(a,'w');
+else,
+  fid = fopen(a,'w',arch);
+end;
+
+if (isreal(b)),
+  y = fwrite(fid,b,type);
+else,
+  y = fwrite(fid,[real(b) imag(b)],type);
+end;
+
+fclose(fid);

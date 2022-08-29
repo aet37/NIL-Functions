@@ -1,0 +1,18 @@
+function out=model5(num,den,
+
+
+t=0:0.01:63;
+u2=zeros(size(t));
+for m=2:5/.01, v(m)=v(m-1)+14.2; end;
+for m=5/.01:7/.01, v(m)=1000; end; 
+for m=29/.01:36/.01, u2(m)=u2(m-1)-.00142; end;
+[y2,x2]=lsim(.05*[1 2 .1],[1 7 2.7 .5],u2,t);
+plot(tc,mean(m1),t,y2);
+
+
+% 4 sec model
+% Input is a ramp up down 22-29/29-29/29/36 with a ramp of 0.00142
+% Second order model .05*[1 .1]/[7 2 .5]
+% 20 sec model
+% Input is ramp 22-29/29-44/44-51 with a ramp of .00142
+% Second order model .05*[1 .1]/[7 4 .5]
