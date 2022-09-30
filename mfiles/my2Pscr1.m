@@ -1,4 +1,4 @@
-function my2Pscr1(fname,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16)
+function my2Pscr1(fname,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17)
 % Usage ... my2Pscr1(fname,p1,a1,p2,a2,...)
 %
 % p#s = do_saveid, do_load, do_loadall, do_motc, do_maskreg, do_intc, do_motc_apply, 
@@ -50,7 +50,7 @@ end;
 vars={'do_saveid','do_load','do_loadall','do_crop','do_motc','do_motcref','do_maskreg','do_intc','do_bin',...
       'do_realign','do_imfilt','do_ffilt','do_arfilt','do_detrend','do_motc_apply','do_intc_apply','do_motcmask',...
       'do_arfilt_apply','do_keepall','do_keepraw','do_saveraw','do_binfirst','do_average','do_timing','do_loadfilt',...
-      'do_proj','do_movie','do_cycleswap','do_cycleconcat'};
+      'do_proj','do_movie','do_cycleswap','do_cycleconcat', 'donot_readxml'};
 nvars=length(vars);
 
 if iscell(p1),
@@ -107,7 +107,11 @@ end;
 %do_realign=1;
 %do_motregress=1;
 
-do_readxml=1;
+if flags.donot_readxml
+    do_readxml=0;
+else
+    do_readxml=1;
+end
 
 if flags.do_saveid, saveid=flags.saveid_parms; else, saveid=''; end;
 if isempty(saveid),
