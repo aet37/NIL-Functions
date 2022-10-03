@@ -50,7 +50,7 @@ datainfo.ch=tmpch1;
 datainfo.ch_ii=tmpch;
 datainfo.nims=tmpims;
 
-save tmp_read_info datainfo
+%save tmp_read_info datainfo
 
 
 % now read everything

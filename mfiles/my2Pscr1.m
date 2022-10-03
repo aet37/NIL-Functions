@@ -171,11 +171,9 @@ if isfield(flags,'do_cycleswap_done'), flags.do_cycleswap=0; end;
 
 if ~isfield(flags,'do_load'), flags.do_load=0; flags.do_load_all=1; end;
 
-if flags.do_cycleconcat, do_readxml=0; end;
-
 if do_readxml, 
   disp('  do read XML');
-  info=parsePrairieXML(fname); 
+  info=parsePrairieXML2(fname); 
   eval(sprintf('save %s -v7.3 -append info',sname));
 else,
   info=[];
@@ -235,7 +233,7 @@ else,
     crop_ii=[1 size(tmpim,1) 1 size(tmpim,2)];
   end;
   %flags.crop_parms=crop_ii;
-end;
+  end;
 
 
 if flags.do_loadall,
@@ -244,12 +242,37 @@ if flags.do_loadall,
     if flags.do_cycleconcat,
       disp('  using alternate reader (do_cycleconcat)...');
       [data_cycles,data_info]=readPrairie2e(fname);
-      data_cycles,
       if flags.do_keepall|flags.do_keepraw, eval(sprintf('save %s -v7.3 -append data_cycles data_info',sname)); end;
       if flags.do_saveraw, eval(sprintf('save %s_cyc -v7.3 data_cycles data_info',sname)); end;
       
-      if ischar(flags.cycleconcat_parms),
+      if strcmp(flags.cycleconcat_parms, 'select'),
+        data_cycles
         flags.cycleconcat_parms=input('  enter cell# to include as matlab vector (eg. [1 2 5 6]): ');
+      elseif strcmp(flags.cycleconcat_parms, 'auto'),
+        if isempty(info) % If XML file has not been parsed
+            for ii = 1:length(data_cycles)
+                dim_arr(ii) = length(size(data_cycles{ii}));
+            end
+
+            disp('  Auto-selecting non-linescan frames for cycle concatenation using data dimensions');
+            flags.cycleconcat_parms = [];
+            for ii = 1:length(data_cycles)
+                if dim_arr(ii) == max(dim_arr)
+                    flags.cycleconcat_parms = [flags.cycleconcat_parms ii];
+                end
+            end
+
+        else    % If XML file has been parsed
+            % Choose only sequences that are not line scans to add to matlab
+            % vector
+            disp('  Auto-selecting non-linescan frames for cycle concatenation using XML');
+            if ~isfield(info, 'LineInfo')   % Choose all cycles if no linescan present
+                flags.cycleconcat_parms = 1:info.nCycles;
+            else
+                flags.cycleconcat_parms = find(info.ValidFramesAll ~= 1);
+            end
+        end
+        
       end;
       if isempty(flags.cycleconcat_parms), flags.cycleconcat_parms=[1:length(data_cycle)]; end;
       for oo=1:length(flags.cycleconcat_parms),
