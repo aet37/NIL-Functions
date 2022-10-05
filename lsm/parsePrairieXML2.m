@@ -151,50 +151,57 @@ end;
       end
   end
 
-  for ss=1:length(a.Sequence), for mm=1:length(a.Sequence(ss).Frame), 
-    h.ValidFramesAll(ss) = length(a.Sequence(ss).Frame);
-    for nn=1:length(a.Sequence(ss).Frame(mm).File),
-      h.FramesAll{mm,ss}.fname{nn}=a.Sequence(ss).Frame(mm).File(nn).ATTRIBUTE;
-    end;
-    h.FramesAll{mm,ss}.absTime=a.Sequence(ss).Frame(mm).ATTRIBUTE.absoluteTime;
-    h.FramesAll{mm,ss}.relTime=a.Sequence(ss).Frame(mm).ATTRIBUTE.relativeTime;
-    
-    % Make frames into Array using valid frames (take images only if linescan
-    % is included. Else, Add whatever is in frames to array
-    if ~isfield(h, 'LineInfo')
-        h.Frames = [h.Frames h.FramesAll{mm, ss}];
-    else
-        if isempty(h.LineInfo(ss).mode) % Case current frame is not a line scan
-            h.Frames = [h.Frames h.FramesAll{mm, ss}];
-        elseif all(containsLine)    % Case only line scan
-            h.Frames = [h.Frames h.FramesAll{mm, ss}];
-        end
+  for ss=1:length(a.Sequence)
+
+    if length(a.Sequence(ss).Frame) == 0
+        h.FramesAll{1, ss} = 'No Frames in this cycle';
+        h.ValidFramesAll(ss) = 0;
     end
 
-    if ~isempty(a.Sequence(ss).Frame(mm).PVStateShard),
-    for nn=1:length(a.Sequence(ss).Frame(mm).PVStateShard.PVStateValue),
-      tmp=a.Sequence(ss).Frame(mm).PVStateShard.PVStateValue(nn);
-      for oo=1:length(frameItems),
-        if strcmp(frameItems{oo},tmp.ATTRIBUTE.key),
-          if isfield(tmp.ATTRIBUTE,'value'),
-            tmpval=tmp.ATTRIBUTE.value;
-            eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',frameItems{oo}));
-          else,
-            for ooo=1:length(tmp.IndexedValue), tmpval(ooo)=tmp.IndexedValue(ooo).ATTRIBUTE.value; end;
-            eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',frameItems{oo}));
-          end
+    for mm=1:length(a.Sequence(ss).Frame), 
+        h.ValidFramesAll(ss) = length(a.Sequence(ss).Frame);
+        for nn=1:length(a.Sequence(ss).Frame(mm).File),
+          h.FramesAll{mm,ss}.fname{nn}=a.Sequence(ss).Frame(mm).File(nn).ATTRIBUTE;
         end;
-      end;
-      for oo=1:length(frameSubItems),
-        if strcmp(frameSubItems{oo},tmp.ATTRIBUTE.key),
-          if isfield(tmp,'SubindexedValues'), for qq=1:length(tmp.SubindexedValues),
-            for rr=1:length(tmp.SubindexedValues(qq).SubindexedValue), tmpval(rr)=tmp.SubindexedValues(qq).SubindexedValue(rr).ATTRIBUTE.value; end;
-            eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',tmp.SubindexedValues(qq).ATTRIBUTE.index));
-          end; end;
-        end;
-      end;
-    end; end;
-  end; end;
+        h.FramesAll{mm,ss}.absTime=a.Sequence(ss).Frame(mm).ATTRIBUTE.absoluteTime;
+        h.FramesAll{mm,ss}.relTime=a.Sequence(ss).Frame(mm).ATTRIBUTE.relativeTime;
+        
+        % Make frames into Array using valid frames (take images only if linescan
+        % is included. Else, Add whatever is in frames to array
+        if ~isfield(h, 'LineInfo')
+            h.Frames = [h.Frames h.FramesAll{mm, ss}];
+        else
+            if isempty(h.LineInfo(ss).mode) % Case current frame is not a line scan
+                h.Frames = [h.Frames h.FramesAll{mm, ss}];
+            elseif all(containsLine)    % Case only line scan
+                h.Frames = [h.Frames h.FramesAll{mm, ss}];
+            end
+        end
+    
+        if ~isempty(a.Sequence(ss).Frame(mm).PVStateShard),
+        for nn=1:length(a.Sequence(ss).Frame(mm).PVStateShard.PVStateValue),
+          tmp=a.Sequence(ss).Frame(mm).PVStateShard.PVStateValue(nn);
+          for oo=1:length(frameItems),
+            if strcmp(frameItems{oo},tmp.ATTRIBUTE.key),
+              if isfield(tmp.ATTRIBUTE,'value'),
+                tmpval=tmp.ATTRIBUTE.value;
+                eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',frameItems{oo}));
+              else,
+                for ooo=1:length(tmp.IndexedValue), tmpval(ooo)=tmp.IndexedValue(ooo).ATTRIBUTE.value; end;
+                eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',frameItems{oo}));
+              end
+            end;
+          end;
+          for oo=1:length(frameSubItems),
+            if strcmp(frameSubItems{oo},tmp.ATTRIBUTE.key),
+              if isfield(tmp,'SubindexedValues'), for qq=1:length(tmp.SubindexedValues),
+                for rr=1:length(tmp.SubindexedValues(qq).SubindexedValue), tmpval(rr)=tmp.SubindexedValues(qq).SubindexedValue(rr).ATTRIBUTE.value; end;
+                eval(sprintf('h.FramesAll{mm,ss}.%s=tmpval;',tmp.SubindexedValues(qq).ATTRIBUTE.index));
+              end; end;
+            end;
+          end;
+        end; end;
+      end; end;
   return;
 end;
 

@@ -250,6 +250,7 @@ if flags.do_loadall,
         flags.cycleconcat_parms=input('  enter cell# to include as matlab vector (eg. [1 2 5 6]): ');
       elseif strcmp(flags.cycleconcat_parms, 'auto'),
         if isempty(info) % If XML file has not been parsed
+            dim_arr = [];
             for ii = 1:length(data_cycles)
                 dim_arr(ii) = length(size(data_cycles{ii}));
             end
@@ -265,11 +266,25 @@ if flags.do_loadall,
         else    % If XML file has been parsed
             % Choose only sequences that are not line scans to add to matlab
             % vector
-            disp('  Auto-selecting non-linescan frames for cycle concatenation using XML');
-            if ~isfield(info, 'LineInfo')   % Choose all cycles if no linescan present
+            disp('  Auto-selecting non-linescan and/or non-empty frames for cycle concatenation using XML');
+            
+            if any(info.ValidFramesAll == 0)    % Choose only valid sequences if sequences frames have no frames
+                disp('    Empty sequences detected ... using data dimensions to choose valid frames.')
+                dim_arr = [];
+                for ii = 1:length(data_cycles)
+                    dim_arr(ii) = length(size(data_cycles{ii}));
+                end
+
+                flags.cycleconcat_parms = [];
+                for ii = 1:length(data_cycles)
+                    if dim_arr(ii) == max(dim_arr)
+                        flags.cycleconcat_parms = [flags.cycleconcat_parms ii];
+                    end
+                end
+            elseif ~isfield(info, 'LineInfo')   % Choose all cycles if no linescan present
                 flags.cycleconcat_parms = 1:info.nCycles;
             else
-                flags.cycleconcat_parms = find(info.ValidFramesAll ~= 1);
+                flags.cycleconcat_parms = find(info.ValidFramesAll > 1);
             end
         end
         
