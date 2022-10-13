@@ -1,9 +1,9 @@
-function my2Pscr1(fname,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17)
+function my2Pscr1(fname,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16)
 % Usage ... my2Pscr1(fname,p1,a1,p2,a2,...)
 %
 % p#s = do_saveid, do_load, do_loadall, do_motc, do_maskreg, do_intc, do_motc_apply, 
 %       do_crop, do_imfilt, do_loadfilt, do_intc_apply, do_keepall, do_keepraw, do_saverwa
-%       do_cycleconcat, do_cycleswap, donot_readxml
+%       do_cycleconcat do_cycleswap
 % average_parms = [#off, #ims_per_trial, #trials]
 % motcref = [im# ch#]
 % maskreg_parms = maskl
@@ -53,7 +53,7 @@ end;
 vars={'do_saveid','do_load','do_loadall','do_crop','do_motc','do_motcref','do_maskreg','do_intc','do_bin',...
       'do_realign','do_imfilt','do_ffilt','do_arfilt','do_detrend','do_motc_apply','do_intc_apply','do_motcmask',...
       'do_arfilt_apply','do_keepall','do_keepraw','do_saveraw','do_binfirst','do_average','do_timing','do_loadfilt',...
-      'do_proj','do_movie','do_cycleswap','do_cycleconcat', 'donot_readxml'};
+      'do_proj','do_movie','do_cycleswap','do_cycleconcat'};
 nvars=length(vars);
 
 if iscell(p1),
@@ -110,11 +110,7 @@ end;
 %do_realign=1;
 %do_motregress=1;
 
-if flags.donot_readxml
-    do_readxml=0;
-else
-    do_readxml=1;
-end
+do_readxml=1;
 
 if flags.do_saveid, saveid=flags.saveid_parms; else, saveid=''; end;
 if isempty(saveid),
@@ -174,9 +170,11 @@ if isfield(flags,'do_cycleswap_done'), flags.do_cycleswap=0; end;
 
 if ~isfield(flags,'do_load'), flags.do_load=0; flags.do_load_all=1; end;
 
+if flags.do_cycleconcat, do_readxml=0; end;
+
 if do_readxml, 
   disp('  do read XML');
-  info=parsePrairieXML2(fname); 
+  info=parsePrairieXML(fname); 
   eval(sprintf('save %s -v7.3 -append info',sname));
 else,
   info=[];
@@ -236,7 +234,7 @@ else,
     crop_ii=[1 size(tmpim,1) 1 size(tmpim,2)];
   end;
   %flags.crop_parms=crop_ii;
-  end;
+end;
 
 
 if flags.do_loadall,
@@ -245,54 +243,14 @@ if flags.do_loadall,
     if flags.do_cycleconcat,
       disp('  using alternate reader (do_cycleconcat)...');
       [data_cycles,data_info]=readPrairie2e(fname);
+      data_cycles,
       if flags.do_keepall|flags.do_keepraw, eval(sprintf('save %s -v7.3 -append data_cycles data_info',sname)); end;
       if flags.do_saveraw, eval(sprintf('save %s_cyc -v7.3 data_cycles data_info',sname)); end;
       
-      if strcmp(flags.cycleconcat_parms, 'select'),
-        data_cycles
+      if ischar(flags.cycleconcat_parms),
         flags.cycleconcat_parms=input('  enter cell# to include as matlab vector (eg. [1 2 5 6]): ');
-      elseif strcmp(flags.cycleconcat_parms, 'auto'),
-        if isempty(info) % If XML file has not been parsed
-            dim_arr = [];
-            for ii = 1:length(data_cycles)
-                dim_arr(ii) = length(size(data_cycles{ii}));
-            end
-
-            disp('  Auto-selecting non-linescan frames for cycle concatenation using data dimensions');
-            flags.cycleconcat_parms = [];
-            for ii = 1:length(data_cycles)
-                if dim_arr(ii) == max(dim_arr)
-                    flags.cycleconcat_parms = [flags.cycleconcat_parms ii];
-                end
-            end
-
-        else    % If XML file has been parsed
-            % Choose only sequences that are not line scans to add to matlab
-            % vector
-            disp('  Auto-selecting non-linescan and/or non-empty frames for cycle concatenation using XML');
-            
-            if any(info.ValidFramesAll == 0)    % Choose only valid sequences if sequences frames have no frames
-                disp('    Empty sequences detected ... using data dimensions to choose valid frames.')
-                dim_arr = [];
-                for ii = 1:length(data_cycles)
-                    dim_arr(ii) = length(size(data_cycles{ii}));
-                end
-
-                flags.cycleconcat_parms = [];
-                for ii = 1:length(data_cycles)
-                    if dim_arr(ii) == max(dim_arr)
-                        flags.cycleconcat_parms = [flags.cycleconcat_parms ii];
-                    end
-                end
-            elseif ~isfield(info, 'LineInfo')   % Choose all cycles if no linescan present
-                flags.cycleconcat_parms = 1:info.nCycles;
-            else
-                flags.cycleconcat_parms = find(info.ValidFramesAll > 1);
-            end
-        end
-        
       end;
-      if isempty(flags.cycleconcat_parms), flags.cycleconcat_parms=[1:length(data_cycle)]; end;
+      if isempty(flags.cycleconcat_parms), flags.cycleconcat_parms=[1:length(data_cycles)]; end;
       for oo=1:length(flags.cycleconcat_parms),
           if oo==1,
               data=data_cycles{flags.cycleconcat_parms(1)};
@@ -696,10 +654,10 @@ if flags.do_realign,
     %tmpi1=find(abs(tmptc)<thr_art);
     %tmpi2=find(abs(tmptc)>=thr_art);
     if thr_art<0,
-      disp('  negative art thr, flipping...');
-      tmptc=-1*tmptc; 
-      thr_art=abs(thr_art); 
-  end;
+        disp('  negative art thr, flipping...');
+        tmptc=-1*tmptc; 
+        thr_art=abs(thr_art); 
+    end;
     tmpi1=find(tmptc<thr_art);
     tmpi2=find(tmptc>=thr_art);
     if isempty(tmpi2),
