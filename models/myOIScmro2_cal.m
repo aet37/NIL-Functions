@@ -74,6 +74,7 @@ cmro2_dunn_1 = cbf1.*( 1 + gamma_r*yHb.yHb_norm(:,1) )./( 1 + gamma_t*yHb.yHb_no
 % very lame optimization for gamma_r and gamma_t
 tmp_gamma_r=[4:-0.01:0.25];
 tmp_gamma_t=[4:-0.01:0.25];
+
 for mm=1:length(tmp_gamma_r),
   for nn=1:length(tmp_gamma_t),
     tmp_cmro2=cbf1(:).*(1+tmp_gamma_r(mm)*yHb.yHb_norm(:,1))./(1+tmp_gamma_t(nn)*yHb.yHb_norm(:,3));
