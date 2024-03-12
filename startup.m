@@ -2,7 +2,7 @@ if isunix
     matpath = [pwd, '/'];
 
     addpath(matpath);
-    addpath([matpath, 'mfiles/']);
+    addpath(genpath([matpath, 'mfiles/']));
     addpath([matpath, 'mrfunc/']);
     addpath([matpath, 'models/']);
     addpath([matpath, 'lsm/']);
@@ -17,7 +17,7 @@ elseif ispc
     matpath = [pwd, '\'];
     
     addpath(matpath);
-    addpath([matpath, 'mfiles\']);
+    addpath(genpath([matpath, 'mfiles\']));
     addpath([matpath, 'mrfunc\']);
     addpath([matpath, 'models\']);
     addpath([matpath, 'lsm\']);
