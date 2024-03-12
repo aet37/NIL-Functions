@@ -25,7 +25,7 @@ end
 if ~exist('sym_flag','var') || isempty(sym_flag)
     sym_flag=0;
 end
-if ~exist('back_color','var') || isempty(mask_color)
+if ~exist('mask_color','var') || isempty(mask_color)
     mask_color=[0.7 0.7 0.7];
 end
 if ~exist('mask','var') || isempty(mask)
