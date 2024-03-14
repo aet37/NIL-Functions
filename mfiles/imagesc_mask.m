@@ -19,9 +19,6 @@ function [] = imagesc_mask(img,map,c_lims,sym_flag,mask,mask_color,x,y)
 if ~exist('map','var') || isempty(map)
     map=parula(601);
 end
-if ~exist('c_lims','var')|| isempty(c_lims)
-    c_lims=[min(img(:)) max(img(:))];
-end
 if ~exist('sym_flag','var') || isempty(sym_flag)
     sym_flag=0;
 end
@@ -30,6 +27,9 @@ if ~exist('mask_color','var') || isempty(mask_color)
 end
 if ~exist('mask','var') || isempty(mask)
     mask=false(size(img));
+end
+if ~exist('c_lims','var')|| isempty(c_lims)
+    c_lims=[min(img(~mask)) max(img(~mask))];
 end
 
 if ~exist('x','var') ||  isempty(x)
