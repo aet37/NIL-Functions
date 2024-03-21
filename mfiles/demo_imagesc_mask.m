@@ -11,7 +11,7 @@ my_img=peaks(512); % generate sample data
 my_img(abs(my_img)<0.2)=NaN; % set values under a threshold to NaN
 figure
 imagesc_mask(my_img,sunset,[],1) % diverging colormap "sunset," zero-centered clims
-title('Example with NaN pixels in "my_img" input')
+title('Example with NaN pixels in "my_img" input','interpreter','none')
 
 %% Example 2: NaN pixels in "my_img" input
 my_img=peaks(512); % generate sample data
