@@ -13,6 +13,9 @@ function [] = imagesc_mask(img,map,c_lims,sym_flag,mask,mask_color,x,y)
 %   mask_color (optional): color of NaN/mask pixels, default [0.7 0.7 0.7] 
 %   x and y (optional): vectors to change the x and y position/scale of the image plot
 %
+%   qualitative data mode is used if colormap has 12 or fewer entries and symflag is 0
+%   qualitive image  should consist of integers from 1 to size of colormap
+%
 % Contact cmr167@pitt.edu with issues
 
 % missing params set to defaults
@@ -23,7 +26,7 @@ if ~exist('sym_flag','var') || isempty(sym_flag)
     sym_flag=0;
 end
 if ~exist('mask_color','var') || isempty(mask_color)
-    mask_color=[0.7 0.7 0.7];
+    mask_color=[0.8 0.8 0.8];
 end
 if ~exist('mask','var') || isempty(mask)
     mask=false(size(img));
@@ -58,6 +61,11 @@ end
 map_size0=size(map,1);
 if map_size0>=601
     map_final=map;
+elseif map_size0<=12 && sym_flag==0 % qualitative data mode
+    map_final=interp1(1:map_size0,map,linspace(0.5,map_size0+0.5,601),'nearest','extrap');
+    if c_lims==[min(img(~mask)) max(img(~mask))];
+        c_lims=[0.5 map_size0+0.5];
+    end
 else
     map_final=interp1(1:map_size0,map,linspace(1,map_size0,601),'pchip');
 end
@@ -88,8 +96,12 @@ elseif scale_flag==1
     imagesc(x,y,img)
 end
 colormap(map_final)
-clim(c_lims_new) 
+clim(c_lims_new)
 axis image
-colorbar
+c=colorbar;
 
+% qualitative data mode only
+if map_size0<=12 && sym_flag==0
+    c.Ticks=1:map_size0;
+end
 end

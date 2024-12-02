@@ -43,3 +43,27 @@ my_mask=(my_mask==0); % generate mask consisting of three circles
 figure
 imagesc_mask(my_img,PrGn,[],1,my_mask,[],0:511,100.5:0.5:356) % Diverging colormap "PrGn," zero-centered clims, binary mask input "my_mask", specified x and y axis vectors
 title('Binary mask with specified x and y position of pixels')
+
+%% Qualitative data example (in development)
+% qualitive data should consist of integers from 1 to size of colormap
+% in this example 1 through 7
+load flujet
+X=X.';
+qual_img=X;
+qual_img=round(qual_img/10)+1;
+clear X
+
+figure
+imagesc_mask(qual_img,colororder,[],0)
+title('Qualitative dataset example')
+%% Qualitative data example (in development)
+% same as above, with circle mask
+load flujet
+X=X.';
+qual_img=X;
+qual_img=round(qual_img/10)+1;
+clear X
+
+figure
+imagesc_mask(qual_img,colororder,[],0,my_mask(213:end,113:end))
+title('Qualitative dataset example with mask')
