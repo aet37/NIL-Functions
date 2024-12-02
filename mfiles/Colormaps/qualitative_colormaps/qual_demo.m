@@ -12,12 +12,6 @@ w =screen(3);
 h =screen(4);
 h0=h0+0.03*h;
 
-% load sample data
-load flujet
-X=X.';
-img=X;
-clear X
-
 %% Demonstrates three qualitative colormaps with default colororder
 
 figure('position',[w0,h0+h/2,w/3,0.8*h/2])
